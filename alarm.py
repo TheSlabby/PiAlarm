@@ -1,33 +1,58 @@
-from datetime import datetime
-from threading import Timer
+import schedule,time
+from multiprocessing import Process, Queue
 import pygame
 pygame.mixer.init()
-pygame.mixer.music.load("Sounds/Wishes.mp3")
-pygame.mixer.music.play()
 
 
-timeTemplate = datetime.today()
+def job():
+    print("I'm working...")
+
+
+class Alarm:
+    def __init__(self, name, time, sound):
+        # MOVE THIS TO self.setup - self.job = schedule.every().day.at(time).do(self.alarm)
+	#SETUP WILL BE CALLED FROM THE OTHER THREAD
+        pygame.mixer.music.load('Sounds/' + sound)
+        self.sound = sound
+        self.time = time
+        self.name = name
+    def alarm(self):
+        pygame.mixer.music.load('Sounds/'+self.sound)
+        pygame.mixer.music.play()
+        print('alarm!')
+
 alarms = []
+q = Queue()
 
 def p(text):
     print('PiAlarm: '+text)
+def i(text):
+    return input(text+' > ')
 
-x=datetime.today()
-delta_t=y-x
+def clockLoop():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+        print(repr(schedule.default_scheduler.jobs))
 
-secs=delta_t.seconds+1
-
-def alarm():
-    print('hello, world!')
-
-t = Timer(secs, hello_world)
-t.start()
+clockProcess = Process(target=clockLoop)
+clockProcess.start()
 
 while True:
     cmd = input('[PiAlarm Shell] ')
     if cmd == 'stop':
         p('Stopping..')
-        t.cancel()
         exit()
+    elif cmd == 'new':
+        t = i('Time of alarm?')
+        n = i('Name of alarm?')
+        s = i('Sound of alarm?')
+        try:
+            alarm = Alarm(n,t,s)
+            alarms.append(alarm)
+        except:
+            p('Invalid alarm!')
+    elif cmd == 'run all':
+        schedule.default_scheduler.run_all()
     else:
         p('Invalid command')
