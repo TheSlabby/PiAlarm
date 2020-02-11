@@ -1,7 +1,6 @@
 import sched,time,sys,datetime
 from multiprocessing import Process, Queue, Manager, Value
 import pygame
-pygame.mixer.init()
 
 shellPrefix = '[PiAlarm Shell] '
 timeFormat = '%I:%M%p'
@@ -27,11 +26,13 @@ class Alarm:
             #get delta time
             now = datetime.datetime.now()
             seconds = (datetime.timedelta(hours=24) - (now - self.goal)).total_seconds() % (24 * 3600)
+            print(seconds)
             scheduler.enter(seconds, 1, self.alarm)
             scheduler.run()
     
     def alarm(self):
         if self.ID in alarms:
+            pygame.mixer.init()
             pygame.mixer.music.load('Sounds/'+self.sound)
             pygame.mixer.music.play()
             print('alarm!')
